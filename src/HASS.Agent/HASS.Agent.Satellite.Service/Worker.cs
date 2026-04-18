@@ -49,6 +49,17 @@ namespace HASS.Agent.Satellite.Service
                     _log.LogWarning("[WORKER] Service is not running as 'System' user but rather '{user}', this may cause permission issues!", runningUser.Name);
                 }
 
+                // initialize the hardware manager (LibreHardwareMonitor) BEFORE loading settings,
+                // because sensor constructors query HardwareManager.Hardware during deserialization
+                try
+                {
+                    HardwareManager.Initialize();
+                }
+                catch (Exception ex)
+                {
+                    _log.LogError(ex, "[WORKER] HardwareManager.Initialize failed: {err}", ex.Message);
+                }
+
                 // load stored settings (if any)
                 var launched = await SettingsManager.LoadAsync();
                 if (!launched)
@@ -68,16 +79,6 @@ namespace HASS.Agent.Satellite.Service
                 
                 // initialize the audio manager
                 _ = Task.Run(AudioManager.Initialize, stoppingToken);
-
-                // initialize the hardware manager (LibreHardwareMonitor)
-                try
-                {
-                    HardwareManager.Initialize();
-                }
-                catch (Exception ex)
-                {
-                    _log.LogError(ex, "[WORKER] HardwareManager.Initialize failed: {err}", ex.Message);
-                }
 
                 // initialize the mqtt manager
                 _ = Task.Run(Variables.MqttManager.Initialize, stoppingToken);

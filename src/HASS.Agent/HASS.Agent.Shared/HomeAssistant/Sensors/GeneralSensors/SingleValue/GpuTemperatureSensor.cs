@@ -16,11 +16,32 @@ namespace HASS.Agent.Shared.HomeAssistant.Sensors.GeneralSensors.SingleValue
 
         public GpuTemperatureSensor(int? updateInterval = null, string entityName = DefaultName, string name = DefaultName, string id = default, string advancedSettings = default) : base(entityName ?? DefaultName, name ?? null, updateInterval ?? 30, id, advancedSettings: advancedSettings)
         {
-            _gpu = HardwareManager.Hardware?.FirstOrDefault(
-                h => h.HardwareType == HardwareType.GpuAmd ||
-                h.HardwareType == HardwareType.GpuNvidia ||
-                h.HardwareType == HardwareType.GpuIntel
-            );
+            // Pick a GPU that actually exposes a temperature sensor. Prefer NVIDIA > AMD > Intel (discrete over iGPU).
+            var gpus = HardwareManager.Hardware?
+                .Where(h => h.HardwareType == HardwareType.GpuNvidia
+                         || h.HardwareType == HardwareType.GpuAmd
+                         || h.HardwareType == HardwareType.GpuIntel)
+                .OrderBy(h => h.HardwareType switch
+                {
+                    HardwareType.GpuNvidia => 0,
+                    HardwareType.GpuAmd => 1,
+                    HardwareType.GpuIntel => 2,
+                    _ => 3,
+                })
+                .ToList();
+
+            if (gpus != null)
+            {
+                foreach (var gpu in gpus)
+                {
+                    gpu.Update();
+                    if (gpu.Sensors.Any(s => s.SensorType == SensorType.Temperature))
+                    {
+                        _gpu = gpu;
+                        break;
+                    }
+                }
+            }
         }
 
         public override DiscoveryConfigModel GetAutoDiscoveryConfig()

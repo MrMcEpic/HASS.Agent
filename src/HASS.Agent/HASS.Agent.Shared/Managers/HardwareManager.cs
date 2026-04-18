@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using LibreHardwareMonitor.Hardware;
+using Serilog;
 
 namespace HASS.Agent.Shared.Managers;
 public static class HardwareManager
@@ -7,7 +9,6 @@ public static class HardwareManager
 	private static Computer s_computer;
 	public static void Initialize()
 	{
-		//Note(Amadeo): for "performance" reasons only GPU is selected below, enable additional ones if required by new sensors/commands
 		s_computer = new Computer()
 		{
 			IsCpuEnabled = false,
@@ -20,6 +21,11 @@ public static class HardwareManager
 		};
 
 		s_computer.Open();
+
+		var hw = s_computer.Hardware.ToList();
+		Log.Information("[HWMGR] Initialized. Detected {count} hardware: {list}",
+			hw.Count,
+			string.Join(", ", hw.Select(h => $"{h.HardwareType}:{h.Name}")));
 	}
 
 	public static IList<IHardware> Hardware => s_computer?.Hardware;
