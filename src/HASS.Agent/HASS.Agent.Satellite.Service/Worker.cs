@@ -69,6 +69,16 @@ namespace HASS.Agent.Satellite.Service
                 // initialize the audio manager
                 _ = Task.Run(AudioManager.Initialize, stoppingToken);
 
+                // initialize the hardware manager (LibreHardwareMonitor)
+                try
+                {
+                    HardwareManager.Initialize();
+                }
+                catch (Exception ex)
+                {
+                    _log.LogError(ex, "[WORKER] HardwareManager.Initialize failed: {err}", ex.Message);
+                }
+
                 // initialize the mqtt manager
                 _ = Task.Run(Variables.MqttManager.Initialize, stoppingToken);
 
@@ -120,6 +130,7 @@ namespace HASS.Agent.Satellite.Service
         private bool Shutdown()
         {
             _log.LogDebug("[WORKER] Shutdown called");
+            HardwareManager.Shutdown();
             HelperFunctions.ShutdownAsync().GetAwaiter().GetResult();
             return true;
         }

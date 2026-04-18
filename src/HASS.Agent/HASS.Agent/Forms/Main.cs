@@ -98,6 +98,7 @@ namespace HASS.Agent.Forms
                 await InternalDeviceSensorsManager.Initialize();
                 InitializeVirtualDesktopManager();
                 await Task.Run(InitializeAudioManager);
+                InitializeHardwareManager();
 
                 // load entities
                 var loaded = await SettingsManager.LoadEntitiesAsync();
@@ -174,6 +175,7 @@ namespace HASS.Agent.Forms
         private void OnProcessExit(object sender, EventArgs e)
         {
             AudioManager.Shutdown();
+            HardwareManager.Shutdown();
             NotificationManager.Exit();
         }
 
@@ -337,6 +339,18 @@ namespace HASS.Agent.Forms
         private void InitializeAudioManager()
         {
             AudioManager.Initialize();
+        }
+
+        private void InitializeHardwareManager()
+        {
+            try
+            {
+                HardwareManager.Initialize();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "[MAIN] HardwareManager.Initialize failed: {err}", ex.Message);
+            }
         }
 
         /// <summary>

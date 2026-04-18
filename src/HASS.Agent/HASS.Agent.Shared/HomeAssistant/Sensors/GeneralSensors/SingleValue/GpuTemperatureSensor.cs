@@ -1,7 +1,8 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Linq;
 using HASS.Agent.Shared.Managers;
 using HASS.Agent.Shared.Models.HomeAssistant;
+using LibreHardwareMonitor.Hardware;
 
 namespace HASS.Agent.Shared.HomeAssistant.Sensors.GeneralSensors.SingleValue
 {
@@ -11,16 +12,16 @@ namespace HASS.Agent.Shared.HomeAssistant.Sensors.GeneralSensors.SingleValue
     public class GpuTemperatureSensor : AbstractSingleValueSensor
     {
         private const string DefaultName = "gputemperature";
-        //private readonly IHardware _gpu;
+        private readonly IHardware _gpu;
 
         public GpuTemperatureSensor(int? updateInterval = null, string entityName = DefaultName, string name = DefaultName, string id = default, string advancedSettings = default) : base(entityName ?? DefaultName, name ?? null, updateInterval ?? 30, id, advancedSettings: advancedSettings)
         {
-/*			_gpu = HardwareManager.Hardware.FirstOrDefault(
-				h => h.HardwareType == HardwareType.GpuAmd ||
-				h.HardwareType == HardwareType.GpuNvidia ||
+            _gpu = HardwareManager.Hardware?.FirstOrDefault(
+                h => h.HardwareType == HardwareType.GpuAmd ||
+                h.HardwareType == HardwareType.GpuNvidia ||
                 h.HardwareType == HardwareType.GpuIntel
-			);*/
-		}
+            );
+        }
 
         public override DiscoveryConfigModel GetAutoDiscoveryConfig()
         {
@@ -45,7 +46,7 @@ namespace HASS.Agent.Shared.HomeAssistant.Sensors.GeneralSensors.SingleValue
 
         public override string GetState()
         {
-/*            if (_gpu == null)
+            if (_gpu == null)
                 return null;
 
             _gpu.Update();
@@ -55,8 +56,7 @@ namespace HASS.Agent.Shared.HomeAssistant.Sensors.GeneralSensors.SingleValue
             if (sensor?.Value == null)
                 return null;
 
-            return sensor.Value.HasValue ? sensor.Value.Value.ToString("#.##", CultureInfo.InvariantCulture) : null;*/
-            return "0";
+            return sensor.Value.HasValue ? sensor.Value.Value.ToString("#.##", CultureInfo.InvariantCulture) : null;
         }
 
         public override string GetAttributes() => string.Empty;

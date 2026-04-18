@@ -349,3 +349,6 @@ healthchecksdb
 MigrationBackup/
 
 src/.svn/
+
+# local build output from restore-lhm work
+publish-x64/
